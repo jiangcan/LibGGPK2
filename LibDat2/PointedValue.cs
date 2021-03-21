@@ -12,7 +12,7 @@ namespace LibDat2 {
 		public object Value { get => FieldValue.Value; }
 
 		public readonly FieldType FieldValue;
-
+		public PointerType Pointer { get; set; }
 		public PointedValue(long Offset, FieldType Value) {
 			this.Offset = Offset;
 			FieldValue = Value;
