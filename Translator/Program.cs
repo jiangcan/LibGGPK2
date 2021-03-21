@@ -42,10 +42,10 @@ namespace Translator
         {
         }
 
-        public void ChangeOffset(PointerType pointerType, long newOffset)
+        public void ChangeOffset(long position, long newOffset)
         {
 
-            _writer.Seek((int)pointerType.Offset, SeekOrigin.Begin);
+            _writer.BaseStream.Seek(position, SeekOrigin.Begin);
             _writer.Write(x64 ? Convert.ToInt64(newOffset) : Convert.ToInt32(newOffset));
 
         }
@@ -62,19 +62,29 @@ namespace Translator
                     {
                         _writer.Seek(0, SeekOrigin.End);
                         var newOffset = _writer.BaseStream.Position - DataSectionOffset;
-                        Console.WriteLine(newOffset);
-                        //newOffset = 682000;
-                        ChangeOffset(pd.Value.Pointer, newOffset);
-                        _writer.Seek(0, SeekOrigin.End);
-                        
+                        _chhangeOffsetDic.TryAdd(pd.Value.Pointer.Pointer, newOffset);
+
 
                         _writer.Write(Encoding.Unicode.GetBytes(str));
 
                        
                         _writer.Write(0);
-                        Console.WriteLine(_writer.BaseStream.Position );
-                        return;
+                  
 
+                    }
+                }
+            }
+
+            foreach (var fieldData in FieldDatas)
+            {
+                foreach (var fieldType in fieldData)
+                {
+                    if (fieldType is PointerType pointerType)
+                    {
+                        if (_chhangeOffsetDic.TryGetValue(pointerType.Pointer,out var newValue))
+                        {
+                            ChangeOffset(pointerType.Offset, newValue);
+                        }
                     }
                 }
             }
@@ -108,8 +118,7 @@ namespace Translator
                 for (int row = start.Row; row <= end.Row; row++)
                 {
                     dic.TryAdd(sht.Cells[row, 1].Text, sht.Cells[row, 2].Text);
-                    Console.WriteLine($"{sht.Cells[row, 1].Text}, {sht.Cells[row, 2].Text}");
-                    break;
+                  
 
                 }
             }
